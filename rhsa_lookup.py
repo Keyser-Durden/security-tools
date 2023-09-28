@@ -1,10 +1,17 @@
 #!/usr/bin/python3
 import sys
+import os
 import requests
 import configparser
 
-# pip install requests
-# pip install configparser
+# Define the path to the configuration file
+config_file_path = '../etc/rhsa_lookup.conf'
+
+# Get the absolute path to the script's directory
+script_directory = os.path.dirname(os.path.abspath(__file__))
+
+# Combine the script's directory with the configuration file path
+config_file_path = os.path.join(script_directory, config_file_path)
 
 # Check if an RHSA ID argument is provided
 if len(sys.argv) != 2:
@@ -14,14 +21,19 @@ if len(sys.argv) != 2:
 # Retrieve the RHSA ID from the command line argument and convert it to uppercase
 rhsa_id = sys.argv[1].upper()
 
-# Read API token from settings.conf
+# Check if the configuration file exists
+if not os.path.isfile(config_file_path):
+    print(f"Error: Configuration file not found at {config_file_path}")
+    sys.exit(1)
+
+# Read API token from the configuration file
 config = configparser.ConfigParser()
-config.read('../etc/rhsa_lookup.conf')
+config.read(config_file_path)
 
 if 'Credentials' in config and 'api_token' in config['Credentials']:
     api_token = config['Credentials']['api_token']
 else:
-    print("Error: API token not found in rhsa_lookup.conf")
+    print("Error: API token not found in the configuration file")
     sys.exit(1)
 
 # Construct the API URL to fetch advisory information
@@ -57,7 +69,12 @@ try:
             print(f"Erratum ID: {erratum['advisory_name']}")
             print(f"Severity: {erratum['severity']}")
             print(f"Package Updates: {', '.join(erratum['package_names'])}")
+    elif response.status_code == 400:
+        # Handle 400 Bad Request errors
+        error_description = response.json().get('detail')
+        print(f"Error 400: {error_description}")
     else:
         print(f"Failed to retrieve RHSA information. Status code: {response.status_code}")
 except Exception as e:
     print(f"An error occurred: {str(e)}")
+
