@@ -98,4 +98,3 @@ if access_token:
             print(f"Failed to retrieve RHSA information. Status code: {response.status_code}")
     except Exception as e:
         print(f"An error occurred: {str(e)}")
-
