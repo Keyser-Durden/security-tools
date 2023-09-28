@@ -16,7 +16,7 @@ rhsa_id = sys.argv[1].upper()
 
 # Read API token from settings.conf
 config = configparser.ConfigParser()
-config.read('settings.conf')
+config.read('../conf/rhsa_lookup.conf')
 
 if 'Credentials' in config and 'api_token' in config['Credentials']:
     api_token = config['Credentials']['api_token']
