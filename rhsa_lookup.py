@@ -37,11 +37,12 @@ else:
     sys.exit(1)
 
 # Construct the API URL to fetch advisory information
-api_url = f"https://api.access.redhat.com/management/v1/advisory/{rhsa_id}"
+api_url = f"https://api.access.redhat.com/management/v1/errata/{rhsa_id}"
 
 # Set up headers with authentication
 headers = {
-    "Authorization": f"Bearer {api_token}"
+    "Authorization": f"Bearer {api_token}",
+    "accept": "application/json"
 }
 
 try:
@@ -53,26 +54,29 @@ try:
         rhsa_data = response.json()
         
         # Extract and print RHSA information
-        print(f"RHSA ID: {rhsa_data['advisory_name']}")
+        print(f"RHSA ID: {rhsa_data['id']}")
         print(f"Title: {rhsa_data['synopsis']}")
         print(f"Description: {rhsa_data['description']}")
+        print(f"Issued: {rhsa_data['issued']}")
+        print(f"Severity: {rhsa_data['severity']}")
         
-        # Extract and print product information
-        print("\nProduct Information:")
-        for product in rhsa_data['affected_products']:
-            print(f"Product Name: {product['product_name']}")
-            print(f"Product Version: {product['product_version']}")
+        # Extract and print affected products
+        print("\nAffected Products:")
+        for product in rhsa_data['affectedProducts']:
+            print(f"Product: {product}")
         
-        # Extract and print affected packages (errata)
-        print("\nAffected Packages (Errata):")
-        for erratum in rhsa_data['errata']:
-            print(f"Erratum ID: {erratum['advisory_name']}")
-            print(f"Severity: {erratum['severity']}")
-            print(f"Package Updates: {', '.join(erratum['package_names'])}")
+        # Extract and print CVEs
+        print("\nCVEs:")
+        for cve in rhsa_data['cves']:
+            print(f"CVE: {cve}")
     elif response.status_code == 400:
         # Handle 400 Bad Request errors
-        error_description = response.json().get('detail')
+        error_description = response.json().get('error', {}).get('message')
         print(f"Error 400: {error_description}")
+    elif response.status_code in [401, 402, 403, 404, 500]:
+        # Handle 401, 402, 403, 404, and 500 errors
+        error_description = response.json().get('error', {}).get('message')
+        print(f"Error {response.status_code}: {error_description}")
     else:
         print(f"Failed to retrieve RHSA information. Status code: {response.status_code}")
 except Exception as e:
