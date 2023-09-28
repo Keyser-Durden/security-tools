@@ -16,12 +16,12 @@ rhsa_id = sys.argv[1].upper()
 
 # Read API token from settings.conf
 config = configparser.ConfigParser()
-config.read('../conf/rhsa_lookup.conf')
+config.read('../etc/rhsa_lookup.conf')
 
 if 'Credentials' in config and 'api_token' in config['Credentials']:
     api_token = config['Credentials']['api_token']
 else:
-    print("Error: API token not found in settings.conf")
+    print("Error: API token not found in rhsa_lookup.conf")
     sys.exit(1)
 
 # Construct the API URL to fetch advisory information
