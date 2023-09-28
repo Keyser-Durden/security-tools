@@ -22,39 +22,30 @@ if len(sys.argv) != 2:
 # Retrieve the RHSA ID from the command line argument and convert it to uppercase
 rhsa_id = sys.argv[1].upper()
 
-# Function to obtain the access token
-def get_access_token():
+# Function to obtain the access token from the configuration file
+def get_access_token_from_config():
     try:
-        # Read offline_token from a file
-        with open('offline_token.txt', 'r') as token_file:
-            offline_token = token_file.read().strip()
+        # Check if the configuration file exists
+        if not os.path.isfile(config_file_path):
+            print(f"Error: Configuration file not found at {config_file_path}")
+            return None
 
-        # Define the authentication request data
-        auth_data = {
-            "grant_type": "refresh_token",
-            "client_id": "rhsm-api",
-            "refresh_token": offline_token
-        }
+        # Read configuration data from the file
+        config = configparser.ConfigParser()
+        config.read(config_file_path)
 
-        # Make a POST request to obtain the access token
-        response = requests.post(
-            "https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token",
-            data=auth_data
-        )
-
-        # Check if the request was successful
-        if response.status_code == 200:
-            response_data = json.loads(response.text)
-            return response_data.get('access_token')
+        # Check if 'Credentials' and 'offline_token' are present in the configuration file
+        if 'Credentials' in config and 'offline_token' in config['Credentials']:
+            return config['Credentials']['offline_token']
         else:
-            print(f"Error obtaining access token. Status code: {response.status_code}")
+            print("Error: 'offline_token' not found in the configuration file")
             return None
     except Exception as e:
-        print(f"An error occurred while obtaining the access token: {str(e)}")
+        print(f"An error occurred while reading the configuration file: {str(e)}")
         return None
 
-# Get the access token
-access_token = get_access_token()
+# Get the access token from the configuration file
+access_token = get_access_token_from_config()
 
 # Check if we successfully obtained the access token
 if access_token:
