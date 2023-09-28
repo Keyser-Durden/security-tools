@@ -39,7 +39,7 @@ else:
 # Construct the API URL to fetch advisory information
 api_url = f"https://api.access.redhat.com/management/v1/errata/{rhsa_id}"
 
-# Set up headers with authentication
+# Set up headers with authentication and "accept" header
 headers = {
     "Authorization": f"Bearer {api_token}",
     "accept": "application/json"
