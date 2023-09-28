@@ -1,9 +1,11 @@
 # security-tools
 
 Generating a token
+
 - https://access.redhat.com/management/api
 
 Information on the Red Hat APIs
+
 - https://access.redhat.com/articles/3626371
 - https://access.redhat.com/management/api/rhsm#/errata/listErratumPackages
 - https://access.redhat.com/articles/3626371#bresources-for-downloads-and-swagger-documentationb-8
