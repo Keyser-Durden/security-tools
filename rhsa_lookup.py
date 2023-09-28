@@ -51,24 +51,28 @@ try:
 
     # Check if the request was successful
     if response.status_code == 200:
-        rhsa_data = response.json()
-        
-        # Extract and print RHSA information
-        print(f"RHSA ID: {rhsa_data['id']}")
-        print(f"Title: {rhsa_data['synopsis']}")
-        print(f"Description: {rhsa_data['description']}")
-        print(f"Issued: {rhsa_data['issued']}")
-        print(f"Severity: {rhsa_data['severity']}")
-        
-        # Extract and print affected products
-        print("\nAffected Products:")
-        for product in rhsa_data['affectedProducts']:
-            print(f"Product: {product}")
-        
-        # Extract and print CVEs
-        print("\nCVEs:")
-        for cve in rhsa_data['cves']:
-            print(f"CVE: {cve}")
+        try:
+            # Attempt to parse the response as JSON
+            rhsa_data = response.json()
+            
+            # Extract and print RHSA information
+            print(f"RHSA ID: {rhsa_data.get('id')}")
+            print(f"Title: {rhsa_data.get('synopsis')}")
+            print(f"Description: {rhsa_data.get('description')}")
+            print(f"Issued: {rhsa_data.get('issued')}")
+            print(f"Severity: {rhsa_data.get('severity')}")
+            
+            # Extract and print affected products
+            print("\nAffected Products:")
+            for product in rhsa_data.get('affectedProducts', []):
+                print(f"Product: {product}")
+            
+            # Extract and print CVEs
+            print("\nCVEs:")
+            for cve in rhsa_data.get('cves', []):
+                print(f"CVE: {cve}")
+        except ValueError as ve:
+            print(f"Failed to parse JSON response: {ve}")
     elif response.status_code == 400:
         # Handle 400 Bad Request errors
         error_description = response.json().get('error', {}).get('message')
