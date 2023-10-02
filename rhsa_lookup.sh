@@ -1,6 +1,41 @@
 #!/bin/bash
 
-# Put your offline_token as a single line of text into ./etc/rh_api_token.txt
+# Initialize verbose flag to false
+verbose=false
+
+# Check for the -v flag
+while getopts ":v" opt; do
+  case $opt in
+    v)
+      verbose=true
+      ;;
+    \?)
+      echo "Invalid option: -$OPTARG" >&2
+      exit 1
+      ;;
+  esac
+done
+
+# Shift the command-line arguments to exclude the processed options
+shift $((OPTIND-1))
+
+# Check if the script is called without an argument
+if [ $# -ne 1 ]; then
+  echo "Usage: $0 [-v] <RHSA>"
+  exit 1
+fi
+
+# Function to validate the RHSA format
+validate_rhsa_format() {
+    local rhsa_pattern="RHSA-[0-9]{4}:[0-9]+"
+    if [[ ! $1 =~ $rhsa_pattern ]]; then
+        echo "Invalid RHSA format. Please provide an RHSA in the format RHSA-<4 digits>:<digits>."
+        exit 1
+    fi
+}
+
+# Validate the RHSA format
+validate_rhsa_format "$1"
 
 # Read the offline token from the first line of ./etc/rh_api_token.txt
 offline_token=$(head -n 1 ./etc/rh_api_token.txt)
@@ -25,11 +60,22 @@ get_rhsa_info() {
   # You can use the $token variable to include the access token in the request headers
   json_response=$(curl -s -H "Authorization: Bearer $token" "https://api.access.redhat.com/management/v1/errata/$RHSA")
 
-  # Extract the "cves" field and remove leading/trailing spaces
-  cves=$(echo "$json_response" | jq -r '.body.cves' | tr -d '[:space:]')
+  # Check if the "cves" field exists in the JSON response
+  if [[ $(echo "$json_response" | jq '.body.cves') != "null" ]]; then
+    # Extract the "cves" field and remove leading/trailing spaces
+    cves=$(echo "$json_response" | jq -r '.body.cves' | tr -d '[:space:]')
 
-  # Split the CVEs based on the "CVE-" prefix and print them one per line
-  echo "$cves" | grep -o 'CVE-[0-9]\{4,9\}-[0-9]\{4,9\}'
+    # Split the CVEs based on the "CVE-" prefix and print them one per line
+    cve_list=$(echo "$cves" | grep -o 'CVE-[0-9]\{4,9\}-[0-9]\{4,9\}' | tr '\n' ',' | sed 's/,$//')
+
+    # Output each CVE,RHSA pair on a separate line
+    for cve in $(echo "$cve_list" | tr ',' ' '); do
+      echo "$cve,$RHSA"
+    done
+  else
+    # Output "CVE,RHSA" if there are no related CVEs
+    echo "CVE,$RHSA"
+  fi
 }
 
 # Call the get_rhsa_info function to retrieve RHSA information and print related CVEs
