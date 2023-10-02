@@ -70,11 +70,11 @@ get_rhsa_info() {
 
     # Output each CVE,RHSA pair on a separate line
     for cve in $(echo "$cve_list" | tr ',' ' '); do
-      echo "$cve,$RHSA"
+      echo "$RHSA,$cve"
     done
   else
     # Output "CVE,RHSA" if there are no related CVEs
-    echo "CVE,$RHSA"
+    echo "$RHSA,"
   fi
 }
 
